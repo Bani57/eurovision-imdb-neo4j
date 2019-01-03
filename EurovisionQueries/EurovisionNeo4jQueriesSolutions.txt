@@ -1,0 +1,104 @@
+Најпрости
+1. MATCH (i:Izveduvach)-[z:AVTOR]->(p:Pesna)
+WHERE p.imeAngliski contains 'love' or p.imeAngliski contains 'Love'
+RETURN p
+
+2. MATCH (p:Pesna)-[r:UCHESTVO]->(e:EvroviziskaVecher)
+WHERE e.tip='F'
+MATCH (g:Godina)-[i:IMA]->(e)
+WHERE g.godina='2004'and r.mesto='4'
+return p
+
+3. MATCH (p:Pesna)<-[i:AVTOR]-(a:Izveduvach)
+with a.ime as ime,count(a.ime) as cnt
+where cnt>1
+return ime,cnt
+ORDER by cnt DESC
+
+4. 
+MATCH (z:Zemja)-[:POTEKLO]->(i:Izveduvach)
+with z,i,reduce(s={in: 0, out: 0}, x IN COLLECT({zemja:z.ime ,pol: i.pol}) |
+    CASE WHEN x.pol="Male"
+      THEN {in: s.in + 1, out: s.out}
+      WHEN x.pol="Female"
+      THEN {in: s.in, out: s.out + 1}
+      ELSE {in: s.in, out: s.out}
+    
+    END) AS res
+
+with res, z,i , collect(z.ime) as zemji
+with z.ime as zemja, sum(res.in) AS broj_mashki, sum(res.out) AS broj_zhenski
+where broj_mashki > broj_zhenski
+return zemja,broj_mashki,broj_zhenski
+order by zemja
+
+Средно сложени
+1. 
+MATCH (c:Zemja)-[:GLAS_OD]->(vP:Glasanje)-[:GLAS_ZA]->(c2:Zemja)
+WITH c2,
+  REDUCE(s={in: 0, out: 0}, x IN COLLECT({reg: c.region, pts: toInteger(vP.poeni)}) |
+    CASE WHEN x.reg=c2.region
+      THEN {in: s.in + x.pts, out: s.out}
+      ELSE {in: s.in, out: s.out + x.pts}
+    END) AS res
+WHERE res.in > res.out
+RETURN c2.ime AS name, res.in AS points
+2.
+MATCH (i:Izveduvach)-[:AVTOR]->(p:Pesna)-[u:UCHESTVO]->(eV:EvroviziskaVecher)
+where not eV.tip='F' and i.tip="Group"  and i.pol = "Female"  and SIZE(p.jazici)>1
+return i
+
+
+3.
+MATCH (z:Zemja)
+with z
+MATCH (z)-[go:GLAS_OD]->(G:Glasanje)-[gz:GLAS_ZA]->(z2:Zemja)
+with z,z2,G
+with z2,sum(toInteger(G.poeni)) as suma
+
+return z2.ime,suma
+order by suma DESC
+LIMIT 1
+
+4.
+MATCH (z:Zemja)
+with z
+MATCH (z)-[go:GLAS_OD]->(G:Glasanje)-[gz:GLAS_ZA]->(z2:Zemja)
+with z,z2,G
+with z2,sum(toInteger(G.poeni)) as suma
+
+return z2.ime,suma
+order by suma DESC
+
+Најсложени 
+1.
+
+MATCH (c:Zemja)-[:GLAS_OD]->(vP:Glasanje)-[:GLAS_ZA]->(c2:Zemja),(vP)<-[:GLAS_KOGA]-(ev:EvroviziskaVecher)<-[:IMA]-(God:Godina)
+WITH c2,God,
+  REDUCE(s={in: 0, out: 0}, x IN COLLECT({reg: c.region, pts: toInteger(vP.poeni),god:God.godina}) |
+    CASE WHEN x.reg=c2.region
+      THEN {in: s.in + x.pts, out: s.out}
+      ELSE {in: s.in, out: s.out + x.pts}
+    END) AS res
+RETURN God.godina,c2.ime AS name, res.in AS pointsFromRegion, res.out as pointFromOutRegion
+ORDER BY God.godina DESC
+
+Со ова не ми дава error 
+
+
+MATCH (c:Zemja)-[:GLAS_OD]->(vP:Glasanje)-[:GLAS_ZA]->(c2:Zemja)
+WITH c2,
+  REDUCE(s={in: 0, out: 0}, x IN COLLECT({reg: c.region, pts: toInteger(vP.poeni)}) |
+    CASE WHEN x.reg=c2.region
+      THEN {in: s.in + x.pts, out: s.out}
+      ELSE {in: s.in, out: s.out + x.pts}
+    END) AS res
+RETURN c2.ime AS name, res.in AS points, res.out
+
+2. 
+
+MATCH (z:Zemja)-[:POTEKLO]->(i:Izveduvach)-[:AVTOR]->(p:Pesna)-[u:UCHESTVO]->(ev:EvroviziskaVecher)<-[:IMA]-(g:Godina)
+WHERE ev.tip IN ["SF1","SF2"]
+AND toInteger(u.mesto) = 11
+RETURN head(collect(z.ime)) AS ZEMJA, toInteger(g.godina) AS GODINA, MAX(toInteger(u.poeni)) AS POENI
+ORDER BY GODINA DESC

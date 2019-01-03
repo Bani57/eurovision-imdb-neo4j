@@ -1,0 +1,164 @@
+
+
+Најпрости 
+
+1. SELECT pesna.imeAngliski
+FROM pesna join izveduvach on pesna.avtor = izveduvach.id
+WHERE pesna.imeAngliski LIKE "%Love%" or pesna.imeAngliski LIKE "%love%"
+2.
+
+SELECT p.ime,i.ime
+FROM uchestvo u 
+ join pesna p on p.id=u.pesna
+ join izveduvach i on i.id=p.avtor
+WHERE u.godina=2004 and u.mesto=4 and u.vecher="F"
+
+3.
+SELECT i.ime,count(*) as cnt
+FROM pesna p 
+  join izveduvach i on i.id=p.avtor
+GROUP BY i.ime
+HAVING cnt >1 
+ORDER BY COUNT(*) DESC
+4. SELECT z.ime ,
+    count(case when i.pol='Male' then 1 end ) as cntMale,
+    count(case when i.pol='Female' then 1 end ) as cntFemale
+FROM zemja z
+  join izveduvach i on i.zemjaPoteklo = z.ime
+group by z.ime
+HAVING cntMale>cntFemale
+
+Средно-Сложени
+1.
+create view razlicen_region as
+
+SELECT g.zemja2, SUM(g.poeni) as p
+
+FROM glasanje g
+     
+join zemja z1 ON z1.ime=g.zemja1
+     
+join zemja z2 on z2.ime=g.zemja2
+ 
+WHERE z1.region!=z2.region    
+
+group by g.zemja2;
+
+create view ist_region as
+
+SELECT g.zemja2, SUM(g.poeni) as p
+
+FROM glasanje g
+     
+join zemja z1 ON z1.ime=g.zemja1
+     
+join zemja z2 on z2.ime=g.zemja2
+ 
+WHERE z1.region=z2.region    
+
+group by g.zemja2;
+
+
+
+SELECT g.zemja2, ir.p,rr.p
+
+FROM glasanje g
+     
+join ist_region ir ON ir.zemja2=g.zemja2
+     
+join razlicen_region rr on rr.zemja2=g.zemja2
+
+WHERE ir.p>rr.p
+
+group by g.zemja2;
+
+2.
+
+create view jazici_broj as
+SELECT p.id,COUNT(*) as cnt
+from pesna p
+ join pesnajazik pj ON pj.pesna=p.id
+ group by p.ime;
+
+SELECT i.ime
+FROM izveduvach i
+     join pesna p ON p.avtor=i.id
+     join uchestvo u ON u.pesna=p.id
+	 join jazici_broj jb ON jb.id=p.id
+     where i.pol="Female" and i.tip='Group' and u.vecher!="F" and jb.cnt>1
+
+3.
+SELECT g.zemja2, SUM(g.poeni) as suma
+FROM glasanje g
+    
+     join zemja z2 on z2.ime=g.zemja2
+    
+group by g.zemja2
+order by suma desc
+limit 1
+4.
+SELECT g.zemja2, SUM(g.poeni) as suma
+FROM glasanje g
+    
+     join zemja z2 on z2.ime=g.zemja2
+    
+group by g.zemja2
+order by suma desc
+
+Најсложени
+1.
+create view ist_region_po_godina as
+SELECT god.godina,g.zemja2 AS zemja2, SUM(g.poeni) AS suma
+    FROM
+        glasanje g
+        JOIN zemja z1 ON z1.ime = g.zemja1
+        JOIN zemja z2 ON z2.ime = g.zemja2
+        join evroviziskavecher ev ON ev.tip=g.vecher
+     join godina god on god.godina=ev.godina
+    WHERE z1.region = z2.region
+    GROUP BY god.godina,g.zemja2
+
+
+create view raz_region_po_godina as
+SELECT god.godina,g.zemja2 AS zemja2, SUM(g.poeni) AS suma
+    FROM
+        glasanje g
+        JOIN zemja z1 ON z1.ime = g.zemja1
+        JOIN zemja z2 ON z2.ime = g.zemja2
+        join evroviziskavecher ev ON ev.tip=g.vecher
+     join godina god on god.godina=ev.godina
+    WHERE z1.region != z2.region
+    GROUP BY god.godina,g.zemja2
+
+SELECT distinct(g.zemja2), ir.suma,rr.suma
+FROM glasanje g
+     join ist_region_po_godina ir ON ir.zemja2=g.zemja2
+     join raz_region_po_godina rr on rr.zemja2=g.zemja2
+     WHERE ir.suma>rr.suma
+
+
+2.
+
+
+create view poeni_za_nefinalisti as
+SELECT god.godina,g.zemja2 AS zemja2, SUM(g.poeni) AS suma
+    FROM
+        glasanje g
+        JOIN zemja z1 ON z1.ime = g.zemja1
+        JOIN zemja z2 ON z2.ime = g.zemja2
+        join evroviziskavecher ev ON ev.tip=g.vecher
+     join godina god on god.godina=ev.godina
+    WHERE ev.tip!="F" and g.godina=god.godina
+    GROUP BY g.zemja2,god.godina
+    order by god.godina
+
+SELECT * from poeni_za_nefinalisti p where (p.godina,p.suma) 
+
+in (
+
+SELECT pznf.godina,MAX(pznf.suma)
+FROM poeni_za_nefinalisti pznf
+     join zemja z ON z.ime=pznf.zemja2
+    
+     group by pznf.godina
+)

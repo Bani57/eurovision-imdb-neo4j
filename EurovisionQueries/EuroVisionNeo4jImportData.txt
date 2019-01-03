@@ -1,0 +1,53 @@
+LOAD CSV WITH HEADERS FROM 'file:///Zemja.csv' AS line
+CREATE (:Zemja { ime: line.ime, region: line.region})
+
+CREATE CONSTRAINT ON (z:Zemja) ASSERT z.ime IS UNIQUE
+
+LOAD CSV WITH HEADERS FROM 'file:///Godina.csv' AS line
+MATCH (z:Zemja { ime: line.zemjaDomakjin })
+CREATE (g:Godina {godina: line.godina })
+CREATE (z)-[:DOMAKJIN]->(g)
+
+CREATE CONSTRAINT ON (g:Godina) ASSERT g.godina IS UNIQUE
+
+LOAD CSV WITH HEADERS FROM 'file:///EvroviziskaVecher.csv' AS line
+MATCH (g:Godina { godina: line.godina })
+CREATE (ev:EvroviziskaVecher {tip: line.tip })
+CREATE (g)-[:IMA]->(ev)
+
+USING PERIODIC COMMIT 100
+LOAD CSV WITH HEADERS FROM 'file:///Izveduvach.csv' AS line
+MATCH (z:Zemja { ime: line.zemjaPoteklo })
+CREATE (i:Izveduvach {id: line.id, ime: line.ime, tip: line.tip, pol: line.pol })
+CREATE (z)-[:POTEKLO]->(i)
+
+CREATE CONSTRAINT ON (i:Izveduvach) ASSERT i.id IS UNIQUE
+
+USING PERIODIC COMMIT 100
+LOAD CSV WITH HEADERS FROM 'file:///Pesna.csv' AS line
+MATCH (i:Izveduvach { id: line.avtor })
+CREATE (p:Pesna {id: line.id, ime: line.ime, imeAngliski: line.imeAngliski, jazici: [] })
+CREATE (i)-[:AVTOR]->(p)
+
+CREATE CONSTRAINT ON (p:Pesna) ASSERT p.id IS UNIQUE
+
+USING PERIODIC COMMIT 100
+LOAD CSV WITH HEADERS FROM 'file:///PesnaJazik.csv' AS line
+MATCH (p:Pesna { id: line.pesna })
+SET p.jazici = p.jazici + line.jazik
+
+USING PERIODIC COMMIT 100
+LOAD CSV WITH HEADERS FROM 'file:///Uchestvo.csv' AS line
+MATCH (ev:EvroviziskaVecher { tip: line.vecher}) <-[:IMA]- (g:Godina { godina: line.godina })
+MATCH (p:Pesna {id: line.pesna })
+CREATE (p)-[:UCHESTVO { mesto: line.mesto, poeni: line.poeni, cenaOblozhuvanje: line.cenaOblozhuvanje }]->(ev)
+
+USING PERIODIC COMMIT 100
+LOAD CSV WITH HEADERS FROM 'file:///Glasanje.csv' AS line
+MATCH (ev:EvroviziskaVecher { tip: line.vecher}) <-[:IMA]- (g:Godina { godina: line.godina })
+MATCH (z1:Zemja {ime: line.zemja1 })
+MATCH (z2:Zemja {ime: line.zemja2 })
+CREATE (glas:Glasanje { poeni: line.poeni })
+CREATE (z1)-[:GLAS_OD]->(glas)
+CREATE (glas)-[:GLAS_ZA]->(z2)
+CREATE (ev)-[:GLAS_KOGA]->(glas)
