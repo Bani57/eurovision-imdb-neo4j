@@ -1,0 +1,8 @@
+Godina(#godina,*zemjaDomakjin)
+EvroviziskaVecher(#{*godina,tip})
+Zemja(#ime,region)
+Glasanje(#{*zemja1,*zemja2,*{godina,vecher}},poeni)
+Uchestvo(#{*{godina,vecher},*zemja},mesto,poeni,cenaOblozhuvanje)
+Izveduvach(#id,ime,pol,tip,*zemjaPoteklo)
+Pesna(#id,ime,imeAngliski,*avtor)
+PesnaJazik(#{*pesna,jazik})
