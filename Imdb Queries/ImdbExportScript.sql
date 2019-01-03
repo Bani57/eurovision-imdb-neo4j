@@ -1,0 +1,41 @@
+SELECT * FROM IMDB.actors
+INTO OUTFILE 'C:/ProgramData/MySQL/MySQL Server 8.0/Uploads/Actors.csv'
+FIELDS TERMINATED BY ','
+    OPTIONALLY ENCLOSED BY '"'
+LINES TERMINATED BY '\n';
+
+SELECT * FROM IMDB.directors
+INTO OUTFILE 'C:/ProgramData/MySQL/MySQL Server 8.0/Uploads/Directors.csv'
+FIELDS TERMINATED BY ','
+    OPTIONALLY ENCLOSED BY '"'
+LINES TERMINATED BY '\n';
+
+SELECT * FROM IMDB.directors_genres
+INTO OUTFILE 'C:/ProgramData/MySQL/MySQL Server 8.0/Uploads/DirectorsGenres.csv'
+FIELDS TERMINATED BY ','
+    OPTIONALLY ENCLOSED BY '"'
+LINES TERMINATED BY '\n';
+
+SELECT * FROM IMDB.movies
+INTO OUTFILE 'C:/ProgramData/MySQL/MySQL Server 8.0/Uploads/Movies.csv'
+FIELDS TERMINATED BY ','
+    OPTIONALLY ENCLOSED BY '"'
+LINES TERMINATED BY '\n';
+
+SELECT * FROM IMDB.movies_directors
+INTO OUTFILE 'C:/ProgramData/MySQL/MySQL Server 8.0/Uploads/MoviesDirectors.csv'
+FIELDS TERMINATED BY ','
+    OPTIONALLY ENCLOSED BY '"'
+LINES TERMINATED BY '\n';
+
+SELECT * FROM IMDB.movies_genres
+INTO OUTFILE 'C:/ProgramData/MySQL/MySQL Server 8.0/Uploads/MoviesGenres.csv'
+FIELDS TERMINATED BY ','
+    OPTIONALLY ENCLOSED BY '"'
+LINES TERMINATED BY '\n';
+
+SELECT * FROM IMDB.roles
+INTO OUTFILE 'C:/ProgramData/MySQL/MySQL Server 8.0/Uploads/Roles.csv'
+FIELDS TERMINATED BY ','
+    OPTIONALLY ENCLOSED BY '"'
+LINES TERMINATED BY '\n';

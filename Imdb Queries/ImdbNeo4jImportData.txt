@@ -1,0 +1,43 @@
+USING PERIODIC COMMIT 100
+LOAD CSV FROM 'file:///Actors.csv' AS line
+CREATE (:Actor { id: line[0], firstName: line[1], lastName: line[2], gender: line[3], filmCount: line[4] })
+
+CREATE CONSTRAINT ON (a:Actor) ASSERT a.id IS UNIQUE
+
+USING PERIODIC COMMIT 100
+LOAD CSV FROM 'file:///Directors.csv' AS line
+CREATE (:Director { id: line[0], firstName: line[1], lastName: line[2] })
+
+CREATE CONSTRAINT ON (d:Director) ASSERT d.id IS UNIQUE
+
+USING PERIODIC COMMIT 100
+LOAD CSV FROM 'file:///Movies.csv' AS line
+CREATE (:Movie { id: line[0], name: line[1], year: line[2], rank: line[3] })
+
+CREATE CONSTRAINT ON (m:Movie) ASSERT m.id IS UNIQUE
+
+USING PERIODIC COMMIT 100
+LOAD CSV FROM 'file:///MoviesDirectors.csv' AS line
+MATCH (d:Director { id: line[0] })
+MATCH (m:Movie { id: line[1] })
+CREATE (d)-[:DIRECTS]->(m)
+
+USING PERIODIC COMMIT 100
+LOAD CSV FROM 'file:///Roles.csv' AS line
+MATCH (a:Actor { id: line[0] })
+MATCH (m:Movie { id: line[1] })
+MERGE (a)-[r:ACTS]->(m)
+ON CREATE SET r.roles = [ line[2] ]
+ON MATCH SET r.roles = r.roles + line[2]
+
+USING PERIODIC COMMIT 100
+LOAD CSV FROM 'file:///MoviesGenres.csv' AS line
+MATCH (m:Movie { id: line[0] })
+MERGE (g:Genre { genre: line[1] })
+CREATE (m)-[:HAS_GENRE]->(g)
+
+USING PERIODIC COMMIT 100
+LOAD CSV FROM 'file:///DirectorsGenres.csv' AS line
+MATCH (d:Director { id: line[0] })
+MERGE (g:Genre { genre: line[1] })
+CREATE (d)-[:DIRECTS_GENRE { probabillity: line[2] }]->(g)

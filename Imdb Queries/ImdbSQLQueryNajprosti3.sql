@@ -1,0 +1,9 @@
+SELECT CONCAT(D.first_name,' ',D.last_name) AS DIRECTOR, DIRECTORS_NUM_MOVIES.NUM_MOVIES AS NUM_MOVIES
+FROM IMDB.directors D,
+(SELECT MD.director_id AS director, COUNT(DISTINCT MD.movie_id) AS NUM_MOVIES
+FROM IMDB.movies_directors MD
+GROUP BY MD.director_id
+ORDER BY NUM_MOVIES DESC) AS DIRECTORS_NUM_MOVIES
+WHERE D.id = DIRECTORS_NUM_MOVIES.director
+AND D.first_name != 'Unknown'
+LIMIT 1
